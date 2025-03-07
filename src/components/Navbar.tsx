@@ -1,13 +1,23 @@
 
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, Search, ShoppingCart, User, X } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, Search, ShoppingCart, User, X, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu';
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout, isAdmin } = useAuth();
 
   // Track scrolling to change navbar style
   useEffect(() => {
@@ -27,6 +37,11 @@ export const Navbar = () => {
   useEffect(() => {
     setIsMenuOpen(false);
   }, [location]);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   return (
     <nav 
@@ -59,6 +74,11 @@ export const Navbar = () => {
             <Link to="/about" className="px-3 py-2 rounded-md text-sm font-medium hover:text-primary transition-colors">
               About
             </Link>
+            {isAdmin() && (
+              <Link to="/admin" className="px-3 py-2 rounded-md text-sm font-medium text-primary hover:text-primary/80 transition-colors">
+                Admin
+              </Link>
+            )}
           </div>
 
           {/* Action Buttons */}
@@ -76,11 +96,36 @@ export const Navbar = () => {
               </Button>
             </Link>
             
-            <Link to="/login">
-              <Button variant="ghost" size="icon" className="hidden md:flex hover:bg-muted">
-                <User className="h-5 w-5" />
-              </Button>
-            </Link>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="hidden md:flex hover:bg-muted">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem className="font-medium">
+                    {user.name}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  {isAdmin() && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin">Dashboard</Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link to="/login">
+                <Button variant="ghost" size="icon" className="hidden md:flex hover:bg-muted">
+                  <User className="h-5 w-5" />
+                </Button>
+              </Link>
+            )}
             
             {/* Mobile menu button */}
             <Button 
@@ -123,12 +168,34 @@ export const Navbar = () => {
             >
               About
             </Link>
-            <Link 
-              to="/login" 
-              className="px-4 py-2 rounded-md text-base font-medium hover:bg-secondary transition-colors"
-            >
-              Account
-            </Link>
+            
+            {isAdmin() && (
+              <Link 
+                to="/admin" 
+                className="px-4 py-2 rounded-md text-base font-medium text-primary hover:bg-secondary transition-colors"
+              >
+                Admin Dashboard
+              </Link>
+            )}
+            
+            {user ? (
+              <Button 
+                variant="ghost" 
+                className="px-4 py-2 h-auto justify-start font-medium hover:bg-secondary"
+                onClick={handleLogout}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            ) : (
+              <Link 
+                to="/login" 
+                className="px-4 py-2 rounded-md text-base font-medium hover:bg-secondary transition-colors"
+              >
+                Account
+              </Link>
+            )}
+            
             <div className="relative w-full">
               <input
                 type="text"

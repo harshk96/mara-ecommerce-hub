@@ -19,6 +19,8 @@ import UserManagement from "./pages/admin/UserManagement";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
+import Categories from "./pages/Categories";
+import About from "./pages/About";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +39,8 @@ const App = () => (
             <Route path="/cart" element={<Cart />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/categories" element={<Categories />} />
+            <Route path="/about" element={<About />} />
             
             {/* Protected User Routes */}
             <Route path="/checkout" element={

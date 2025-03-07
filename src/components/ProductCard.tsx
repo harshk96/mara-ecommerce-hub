@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, ShoppingCart, Star } from 'lucide-react';
@@ -9,9 +10,18 @@ import { useBlurImageLoad } from '@/lib/animations';
 interface ProductCardProps {
   product: Product;
   index?: number;
+  isAdmin?: boolean;
+  onEdit?: (product: Product) => void;
+  onDelete?: (productId: string) => void;
 }
 
-export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
+export const ProductCard = ({ 
+  product, 
+  index = 0, 
+  isAdmin = false,
+  onEdit,
+  onDelete
+}: ProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const { isLoaded, onLoad, imgClass } = useBlurImageLoad();
   const delay = index * 0.1;
@@ -26,6 +36,18 @@ export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
     e.preventDefault();
     e.stopPropagation();
     toast.success(`Added ${product.name} to favorites`);
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onEdit) onEdit(product);
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onDelete) onDelete(product.id);
   };
 
   // Calculate discount price if applicable
@@ -75,14 +97,35 @@ export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
           <div className={`absolute right-3 top-3 flex flex-col gap-2 transition-opacity duration-300 ${
             isHovered ? 'opacity-100' : 'opacity-0'
           }`}>
-            <Button
-              variant="secondary"
-              size="icon"
-              className="h-8 w-8 bg-white/80 backdrop-blur-sm hover:bg-white"
-              onClick={handleFavorite}
-            >
-              <Heart className="h-4 w-4" />
-            </Button>
+            {isAdmin ? (
+              <>
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="h-8 w-8 bg-white/80 backdrop-blur-sm hover:bg-white"
+                  onClick={handleEdit}
+                >
+                  <Star className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={handleDelete}
+                >
+                  <Heart className="h-4 w-4" />
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="secondary"
+                size="icon"
+                className="h-8 w-8 bg-white/80 backdrop-blur-sm hover:bg-white"
+                onClick={handleFavorite}
+              >
+                <Heart className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
 
@@ -122,15 +165,17 @@ export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
             </div>
             
             {/* Add to Cart Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 px-2 hover:bg-primary hover:text-white transition-colors"
-              onClick={handleAddToCart}
-            >
-              <ShoppingCart className="h-4 w-4 mr-1" />
-              <span className="text-xs">Add</span>
-            </Button>
+            {!isAdmin && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 hover:bg-primary hover:text-white transition-colors"
+                onClick={handleAddToCart}
+              >
+                <ShoppingCart className="h-4 w-4 mr-1" />
+                <span className="text-xs">Add</span>
+              </Button>
+            )}
           </div>
         </div>
       </div>

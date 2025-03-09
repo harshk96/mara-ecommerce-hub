@@ -44,7 +44,7 @@ export const ProductGrid = ({ products, isLoading = false }: ProductGridProps) =
         <ProductCard 
           key={product.id} 
           product={product} 
-          index={0} // Remove staggered animation delay
+          index={0}
         />
       ))}
     </div>

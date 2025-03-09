@@ -6,8 +6,13 @@ import { mockServer } from './mockServer';
 
 const originalFetch = window.fetch;
 
-window.fetch = async function(input, init) {
-  const url = typeof input === 'string' ? input : input.url;
+window.fetch = async function(input: RequestInfo | URL, init?: RequestInit) {
+  const url = typeof input === 'string' 
+    ? input 
+    : input instanceof Request 
+      ? input.url 
+      : input.toString();
+  
   const method = init?.method || 'GET';
   
   // Only intercept calls to our API
@@ -19,7 +24,7 @@ window.fetch = async function(input, init) {
   return originalFetch(input, init);
 };
 
-async function handleMockRequest(url: string, method: string, init?: RequestInit) {
+async function handleMockRequest(url: string, method: string, init?: RequestInit): Promise<Response> {
   // Extract the path from the URL
   const path = url.replace(/^.*\/v1/, '');
   
@@ -132,12 +137,9 @@ async function handleMockRequest(url: string, method: string, init?: RequestInit
   );
 }
 
-function mockResponse(status: number, body: any) {
-  return Promise.resolve({
+function mockResponse(status: number, body: any): Response {
+  return new Response(JSON.stringify(body), {
     status,
-    ok: status >= 200 && status < 300,
-    json: () => Promise.resolve(body),
-    text: () => Promise.resolve(JSON.stringify(body)),
     headers: new Headers({ 'Content-Type': 'application/json' })
   });
 }

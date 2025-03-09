@@ -5,7 +5,6 @@ import { Heart, ShoppingCart, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Product } from '@/lib/data';
-import { useBlurImageLoad } from '@/lib/animations';
 
 interface ProductCardProps {
   product: Product;
@@ -23,8 +22,7 @@ export const ProductCard = ({
   onDelete
 }: ProductCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const { isLoaded, onLoad, imgClass } = useBlurImageLoad();
-  const delay = index * 0.1;
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -60,15 +58,15 @@ export const ProductCard = ({
       to={`/product/${product.id}`}
       className="group animate-hover-lift"
       style={{
-        opacity: 0,
-        animation: `fade-in 0.5s ease-out ${delay}s forwards`
+        opacity: 1, // Remove fade-in animation
+        animation: 'none' // Remove animation
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="relative bg-white rounded-2xl overflow-hidden shadow-subtle transition-all duration-300 group-hover:shadow-hover pb-4">
         {/* Image Container */}
-        <div className="relative h-64 overflow-hidden">
+        <div className="relative h-64 overflow-hidden bg-gray-100">
           {/* Product Labels */}
           <div className="absolute top-3 left-3 z-10 flex flex-col gap-2">
             {product.new && (
@@ -87,11 +85,19 @@ export const ProductCard = ({
           <img
             src={product.images[0]}
             alt={product.name}
-            className={`w-full h-full object-cover transition-transform duration-700 ${imgClass} ${
+            className={`w-full h-full object-cover transition-transform duration-700 ${
               isHovered ? 'scale-110' : 'scale-100'
-            }`}
-            onLoad={onLoad}
+            } ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+            onLoad={() => setIsImageLoaded(true)}
+            loading="eager" // Use eager loading for above-the-fold images
           />
+          
+          {/* Loading placeholder */}
+          {!isImageLoaded && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          )}
           
           {/* Quick Action Buttons */}
           <div className={`absolute right-3 top-3 flex flex-col gap-2 transition-opacity duration-300 ${

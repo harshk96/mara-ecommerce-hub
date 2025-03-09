@@ -6,6 +6,7 @@ import { ArrowRight } from 'lucide-react';
 
 export const Hero = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [imagesPreloaded, setImagesPreloaded] = useState(false);
   const slides = [
     {
       title: "The Best Daily Essentials",
@@ -30,13 +31,43 @@ export const Hero = () => {
     }
   ];
 
-  // Auto-advance slides
+  // Preload all slide images
   useEffect(() => {
+    const preloadImages = async () => {
+      const imagePromises = slides.map(slide => {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.src = slide.image;
+          img.onload = resolve;
+          img.onerror = resolve; // Proceed even if there's an error
+        });
+      });
+      
+      // Wait for all images to load
+      await Promise.all(imagePromises);
+      setImagesPreloaded(true);
+    };
+    
+    preloadImages();
+  }, []);
+
+  // Auto-advance slides only after images are preloaded
+  useEffect(() => {
+    if (!imagesPreloaded) return;
+    
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, [slides.length]);
+  }, [imagesPreloaded, slides.length]);
+
+  if (!imagesPreloaded) {
+    return (
+      <section className="relative h-[70vh] md:h-[80vh] bg-muted flex items-center justify-center mt-16 md:mt-0">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </section>
+    );
+  }
 
   return (
     <section className="relative h-[70vh] md:h-[80vh] overflow-hidden mt-16 md:mt-0">
@@ -50,7 +81,7 @@ export const Hero = () => {
         >
           {/* Background Image with Parallax Effect */}
           <div 
-            className="absolute inset-0 bg-cover bg-center transform scale-105 transition-transform duration-[3000ms]"
+            className="absolute inset-0 bg-cover bg-center transform transition-transform duration-[3000ms]"
             style={{ 
               backgroundImage: `url(${slide.image})`,
               transform: index === currentSlide ? 'scale(1.0)' : 'scale(1.05)'

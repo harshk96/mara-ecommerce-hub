@@ -1,229 +1,251 @@
 
 import { faker } from '@faker-js/faker';
 
-// Generates mock data for development
-class MockServer {
-  products: any[];
-  orders: any[];
-  users: any[];
-
-  constructor() {
-    this.products = [];
-    this.orders = [];
-    this.users = [];
-    this.seedData();
-  }
-
-  seedData() {
-    // Generate mock products
-    for (let i = 0; i < 20; i++) {
-      this.products.push({
-        id: faker.string.uuid(),
-        name: faker.commerce.productName(),
-        description: faker.commerce.productDescription(),
-        price: parseFloat(faker.commerce.price()),
-        category: faker.commerce.department(),
-        images: [
-          faker.image.urlLoremFlickr({ category: 'product' }),
-          faker.image.urlLoremFlickr({ category: 'product' })
-        ],
-        stock: faker.number.int({ min: 0, max: 100 }),
-        rating: faker.number.float({ min: 1, max: 5, precision: 0.1 }),
-        reviews: faker.number.int({ min: 0, max: 500 }),
-        new: faker.datatype.boolean(),
-        discount: faker.helpers.maybe(() => faker.number.int({ min: 5, max: 30 }), { probability: 0.3 })
-      });
-    }
-
-    // Generate mock orders
-    for (let i = 0; i < 15; i++) {
-      const orderItems = [];
-      const itemCount = faker.number.int({ min: 1, max: 5 });
-      
-      for (let j = 0; j < itemCount; j++) {
-        const product = faker.helpers.arrayElement(this.products);
-        orderItems.push({
-          productId: product.id,
-          name: product.name,
-          price: product.price,
-          quantity: faker.number.int({ min: 1, max: 3 })
-        });
-      }
-
-      const total = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-      
-      this.orders.push({
-        id: faker.string.uuid(),
-        user: {
-          id: faker.string.uuid(),
-          name: faker.person.fullName(),
-          email: faker.internet.email()
-        },
-        items: orderItems,
-        total,
-        status: faker.helpers.arrayElement(['pending', 'processing', 'shipped', 'delivered', 'cancelled']),
-        createdAt: faker.date.recent({ days: 30 }).toISOString(),
-        shippingAddress: {
-          street: faker.location.streetAddress(),
-          city: faker.location.city(),
-          state: faker.location.state(),
-          zipCode: faker.location.zipCode(),
-          country: 'United States'
-        },
-        paymentMethod: faker.helpers.arrayElement(['credit_card', 'paypal', 'stripe'])
-      });
-    }
-
-    // Generate mock users
-    this.users = [
-      {
-        id: '1',
-        name: 'Admin User',
-        email: 'admin@mara.com',
-        role: 'admin',
-        joinedDate: faker.date.past().toISOString().split('T')[0],
-        status: 'active',
-        orders: 4
-      },
-      {
-        id: '2',
-        name: 'Regular User',
-        email: 'user@mara.com',
-        role: 'user',
-        joinedDate: faker.date.past().toISOString().split('T')[0],
-        status: 'active',
-        orders: 8
-      }
-    ];
-
-    // Add more mock users
-    for (let i = 0; i < 10; i++) {
-      this.users.push({
-        id: faker.string.uuid(),
-        name: faker.person.fullName(),
-        email: faker.internet.email(),
-        role: 'user',
-        joinedDate: faker.date.past().toISOString().split('T')[0],
-        status: faker.helpers.arrayElement(['active', 'inactive']),
-        orders: faker.number.int({ min: 0, max: 15 })
-      });
-    }
-  }
-
-  // Product methods
-  getProducts() {
-    return [...this.products];
-  }
-
-  getProductById(id: string) {
-    return this.products.find(p => p.id === id);
-  }
-
-  createProduct(product: any) {
-    const newProduct = {
-      id: faker.string.uuid(),
-      ...product,
-      reviews: 0,
-      rating: 0
-    };
-    this.products.push(newProduct);
-    return newProduct;
-  }
-
-  updateProduct(id: string, updates: any) {
-    const index = this.products.findIndex(p => p.id === id);
-    if (index !== -1) {
-      this.products[index] = { ...this.products[index], ...updates };
-      return this.products[index];
-    }
-    return null;
-  }
-
-  deleteProduct(id: string) {
-    const index = this.products.findIndex(p => p.id === id);
-    if (index !== -1) {
-      const deleted = this.products[index];
-      this.products.splice(index, 1);
-      return deleted;
-    }
-    return null;
-  }
-
-  // Order methods
-  getOrders() {
-    return [...this.orders];
-  }
-
-  getOrderById(id: string) {
-    return this.orders.find(o => o.id === id);
-  }
-
-  updateOrderStatus(id: string, status: string) {
-    const index = this.orders.findIndex(o => o.id === id);
-    if (index !== -1) {
-      this.orders[index].status = status;
-      return this.orders[index];
-    }
-    return null;
-  }
-
-  deleteOrder(id: string) {
-    const index = this.orders.findIndex(o => o.id === id);
-    if (index !== -1) {
-      const deleted = this.orders[index];
-      this.orders.splice(index, 1);
-      return deleted;
-    }
-    return null;
-  }
-
-  // User methods
-  getUsers() {
-    return [...this.users];
-  }
-
-  getUserById(id: string) {
-    return this.users.find(u => u.id === id);
-  }
-
-  createUser(user: any) {
-    const newUser = {
-      id: faker.string.uuid(),
-      ...user,
-      joinedDate: new Date().toISOString().split('T')[0],
-      orders: 0
-    };
-    this.users.push(newUser);
-    return newUser;
-  }
-
-  updateUser(id: string, updates: any) {
-    const index = this.users.findIndex(u => u.id === id);
-    if (index !== -1) {
-      this.users[index] = { ...this.users[index], ...updates };
-      return this.users[index];
-    }
-    return null;
-  }
-
-  deleteUser(id: string) {
-    const index = this.users.findIndex(u => u.id === id);
-    if (index !== -1) {
-      const deleted = this.users[index];
-      this.users.splice(index, 1);
-      return deleted;
-    }
-    return null;
-  }
-
-  toggleUserStatus(id: string, status: string) {
-    const index = this.users.findIndex(u => u.id === id);
-    if (index !== -1) {
-      this.users[index].status = status;
-      return this.users[index];
-    }
-    return null;
-  }
+// Types
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  discount?: number;
+  category: string;
+  images: string[];
+  stock: number;
+  rating: number;
+  reviews: number;
+  featured: boolean;
+  new: boolean;
+  createdAt: string;
 }
 
-export const mockServer = new MockServer();
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'user';
+  avatar: string;
+  status: 'active' | 'inactive';
+  createdAt: string;
+}
+
+export interface Order {
+  id: string;
+  customer: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  products: {
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+  }[];
+  total: number;
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  createdAt: string;
+  updatedAt: string;
+  paymentMethod: 'credit_card' | 'paypal' | 'bank_transfer';
+  shippingAddress: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+}
+
+// Mock Database
+let products: Product[] = [];
+let users: User[] = [];
+let orders: Order[] = [];
+
+// Generate initial data
+const generateInitialData = () => {
+  // Generate products
+  for (let i = 0; i < 20; i++) {
+    const name = faker.commerce.productName();
+    const category = faker.commerce.department();
+    const price = Number(faker.commerce.price({ min: 10, max: 1000, dec: 2 }));
+    
+    products.push({
+      id: faker.string.uuid(),
+      name,
+      description: faker.commerce.productDescription(),
+      price,
+      discount: Math.random() > 0.7 ? Math.floor(Math.random() * 50) + 10 : undefined,
+      category,
+      images: Array.from({ length: Math.floor(Math.random() * 3) + 1 }, () => 
+        faker.image.urlLoremFlickr({ category: category.toLowerCase(), width: 640, height: 480 })
+      ),
+      stock: Math.floor(Math.random() * 100),
+      rating: Number((Math.random() * 2 + 3).toFixed(1)),
+      reviews: Math.floor(Math.random() * 500),
+      featured: Math.random() > 0.8,
+      new: Math.random() > 0.8,
+      createdAt: faker.date.past().toISOString()
+    });
+  }
+  
+  // Generate users
+  for (let i = 0; i < 10; i++) {
+    users.push({
+      id: faker.string.uuid(),
+      name: faker.person.fullName(),
+      email: faker.internet.email(),
+      role: i === 0 ? 'admin' : 'user',
+      avatar: faker.image.avatar(),
+      status: Math.random() > 0.2 ? 'active' : 'inactive',
+      createdAt: faker.date.past().toISOString()
+    });
+  }
+  
+  // Generate orders
+  for (let i = 0; i < 15; i++) {
+    const user = users[Math.floor(Math.random() * users.length)];
+    const orderProducts = [];
+    let total = 0;
+    
+    const numProducts = Math.floor(Math.random() * 5) + 1;
+    for (let j = 0; j < numProducts; j++) {
+      const product = products[Math.floor(Math.random() * products.length)];
+      const quantity = Math.floor(Math.random() * 3) + 1;
+      const productTotal = product.price * quantity;
+      
+      orderProducts.push({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        quantity
+      });
+      
+      total += productTotal;
+    }
+    
+    orders.push({
+      id: faker.string.uuid(),
+      customer: {
+        id: user.id,
+        name: user.name,
+        email: user.email
+      },
+      products: orderProducts,
+      total,
+      status: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'][Math.floor(Math.random() * 5)] as Order['status'],
+      createdAt: faker.date.past().toISOString(),
+      updatedAt: faker.date.recent().toISOString(),
+      paymentMethod: ['credit_card', 'paypal', 'bank_transfer'][Math.floor(Math.random() * 3)] as Order['paymentMethod'],
+      shippingAddress: {
+        street: faker.location.streetAddress(),
+        city: faker.location.city(),
+        state: faker.location.state(),
+        zipCode: faker.location.zipCode(),
+        country: faker.location.country()
+      }
+    });
+  }
+};
+
+// Generate data on initialization
+generateInitialData();
+
+// Mock Server API
+export const mockServer = {
+  // Product methods
+  getProducts: () => products,
+  
+  getProductById: (id: string) => {
+    return products.find(product => product.id === id);
+  },
+  
+  createProduct: (product: Omit<Product, 'id' | 'createdAt'>) => {
+    const newProduct = {
+      ...product,
+      id: faker.string.uuid(),
+      createdAt: new Date().toISOString()
+    };
+    products.push(newProduct as Product);
+    return newProduct;
+  },
+  
+  updateProduct: (id: string, updates: Partial<Product>) => {
+    const index = products.findIndex(product => product.id === id);
+    if (index === -1) return null;
+    
+    products[index] = { ...products[index], ...updates };
+    return products[index];
+  },
+  
+  deleteProduct: (id: string) => {
+    const index = products.findIndex(product => product.id === id);
+    if (index === -1) return false;
+    
+    products.splice(index, 1);
+    return true;
+  },
+  
+  // User methods
+  getUsers: () => users,
+  
+  getUserById: (id: string) => {
+    return users.find(user => user.id === id);
+  },
+  
+  createUser: (user: Omit<User, 'id' | 'createdAt'>) => {
+    const newUser = {
+      ...user,
+      id: faker.string.uuid(),
+      createdAt: new Date().toISOString()
+    };
+    users.push(newUser as User);
+    return newUser;
+  },
+  
+  updateUser: (id: string, updates: Partial<User>) => {
+    const index = users.findIndex(user => user.id === id);
+    if (index === -1) return null;
+    
+    users[index] = { ...users[index], ...updates };
+    return users[index];
+  },
+  
+  deleteUser: (id: string) => {
+    const index = users.findIndex(user => user.id === id);
+    if (index === -1) return false;
+    
+    users.splice(index, 1);
+    return true;
+  },
+  
+  toggleUserStatus: (id: string, status: User['status']) => {
+    const index = users.findIndex(user => user.id === id);
+    if (index === -1) return null;
+    
+    users[index].status = status;
+    return users[index];
+  },
+  
+  // Order methods
+  getOrders: () => orders,
+  
+  getOrderById: (id: string) => {
+    return orders.find(order => order.id === id);
+  },
+  
+  updateOrderStatus: (id: string, status: Order['status']) => {
+    const index = orders.findIndex(order => order.id === id);
+    if (index === -1) return null;
+    
+    orders[index].status = status;
+    orders[index].updatedAt = new Date().toISOString();
+    return orders[index];
+  },
+  
+  deleteOrder: (id: string) => {
+    const index = orders.findIndex(order => order.id === id);
+    if (index === -1) return false;
+    
+    orders.splice(index, 1);
+    return true;
+  }
+};

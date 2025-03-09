@@ -12,17 +12,10 @@ interface ProductGridProps {
 export const ProductGrid = ({ products, isLoading = false }: ProductGridProps) => {
   const [loadedProducts, setLoadedProducts] = useState<Product[]>([]);
 
-  // Simulate staggered loading effect
+  // Load products immediately rather than staggering them
   useEffect(() => {
     if (!isLoading && products.length > 0) {
-      setLoadedProducts([]);
-      
-      // Load products progressively
-      products.forEach((product, index) => {
-        setTimeout(() => {
-          setLoadedProducts(prev => [...prev, product]);
-        }, 100 * index); // Stagger each product loading
-      });
+      setLoadedProducts(products);
     }
   }, [isLoading, products]);
 
@@ -30,7 +23,7 @@ export const ProductGrid = ({ products, isLoading = false }: ProductGridProps) =
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {Array.from({ length: 8 }).map((_, index) => (
-          <ProductSkeleton key={index} />
+          <ProductSkeleton key={`skeleton-${index}`} />
         ))}
       </div>
     );
@@ -47,11 +40,11 @@ export const ProductGrid = ({ products, isLoading = false }: ProductGridProps) =
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {loadedProducts.map((product, index) => (
+      {loadedProducts.map((product) => (
         <ProductCard 
           key={product.id} 
           product={product} 
-          index={index}
+          index={0} // Remove staggered animation delay
         />
       ))}
     </div>
